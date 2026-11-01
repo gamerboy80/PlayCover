@@ -1,8 +1,6 @@
 name: Build & Release macOS App
 on:
   workflow_dispatch:
-    tags:
-          - "*"
   push:
     tags:
       - "*"
@@ -19,47 +17,28 @@ jobs:
 
       - name: Get the version
         id: tag_version
-        run: echo "TAG_NAME=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> "$GITHUB_ENV"
+          else
+            echo "TAG_NAME=manual_${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
+          fi
 
       - name: Install dependencies
         shell: bash
         run: |
-          brew install swiftlint
-          gem install fastlane
-          bundle install
-          pip install setuptools
+          brew install swiftlint carthage
           npm install https://github.com/PlayCover/create-dmg
 
-      - name: Fastlane Release
+      - name: Build with ad hoc signing
         shell: bash
-        run: fastlane release
-        env:
-          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-          FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: 120 # x86 is slooooooow
-
-      - name: Exract API_KEY
-        shell: bash
-        run: 'echo "$API_KEY" > apikey.json'
-        env:
-          API_KEY: ${{secrets.APPLE_API_KEY_JSON}}
+        run: bash scripts/build-app.sh Release
 
       - name: Create DMG
         shell: bash
         run: |
-          npx create-dmg ./output/PlayCover.app ./output
+          npx create-dmg ./output/PlayCover.app ./output --no-code-sign
           mv ./output/*.dmg ./output/PlayCover_${{ env.TAG_NAME }}.dmg
-
-      - name: Notarize DMG
-        continue-on-error: true
-        shell: bash
-        run: |
-          fastlane notarize_dmg package:output/PlayCover_${{ env.TAG_NAME }}.dmg
-
-
-      - name: Clean Up
-        shell: bash
-        run: rm apikey.json
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v7

@@ -13,10 +13,17 @@ struct KeyModelTransform: Codable {
     var yCoord: CGFloat
 }
 
+enum ButtonGesture: String, Codable {
+    case swipe
+    case doubleTap
+}
+
 struct ButtonModel: Codable {
     var keyCode: Int
     var keyName: String
     var transform: KeyModelTransform
+    var gesture: ButtonGesture?
+    var endTransform: KeyModelTransform?
 
     init(keyCode: Int, keyName: String, transform: KeyModelTransform) {
         self.keyCode = keyCode
@@ -29,6 +36,8 @@ struct ButtonModel: Codable {
         self.init(keyCode: try container.decode(Int.self, forKey: .keyCode),
                   keyName: try container.decodeIfPresent(String.self, forKey: .keyName) ?? "",
                   transform: try container.decode(KeyModelTransform.self, forKey: .transform))
+        gesture = try container.decodeIfPresent(ButtonGesture.self, forKey: .gesture)
+        endTransform = try container.decodeIfPresent(KeyModelTransform.self, forKey: .endTransform)
     }
 }
 
