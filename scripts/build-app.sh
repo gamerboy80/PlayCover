@@ -10,7 +10,7 @@ settings=(
   CODE_SIGN_IDENTITY=-
   CODE_SIGN_STYLE=Manual
   # Ad hoc signatures have no Team ID for hardened runtime library validation.
-  CODE_SIGN_ENTITLEMENTS=PlayCover/PlayCoverAdHoc.entitlements
+  PLAYCOVER_CODE_SIGN_ENTITLEMENTS=PlayCover/PlayCoverAdHoc.entitlements
   DEVELOPMENT_TEAM=
   PROVISIONING_PROFILE_SPECIFIER=
   PROVISIONING_PROFILE=
